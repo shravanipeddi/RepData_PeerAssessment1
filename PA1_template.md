@@ -1,24 +1,31 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 Loading the csv
-```{r loading_data}
+
+```r
 unzip(zipfile = "./activity.zip")
 data <- read.csv("./activity.csv")
 data$interval <- as.factor(data$interval)
 head(data)
 ```
 
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
 ## What is mean total number of steps taken per day?
 
 Calculating total steps wrt dates and plotting a histogram
-```{r plot mean and total steps}
+
+```r
 stepsPerDay <- aggregate(steps ~ date,data,sum)
 
 library(ggplot2)
@@ -26,35 +33,63 @@ qplot(stepsPerDay$steps,xlab="Total Steps per day",main = "Total Steps Per day D
       ylab ="Frequency" )
 ```
 
+![](PA1_template_files/figure-html/plot mean and total steps-1.png) 
+
 Mean & Median
-```{r calculate mean and median on total steps}
+
+```r
 mean(stepsPerDay$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(stepsPerDay$steps)
 ```
 
-## What is the average daily activity pattern?
-```{r}
+```
+## [1] 10765
+```
 
+## What is the average daily activity pattern?
+
+```r
 averages <- aggregate(data$steps, by = list(interval = data$interval),mean,na.rm=TRUE)
 colnames(averages) <- c("interval","steps")
 averages$interval <- as.integer(levels(averages$interval))
 ggplot(data = averages, aes(x = interval, y = steps)) + geom_line(color="red") + xlab("5 min Interval") + ylab("Average number of steps on all days") +ggtitle("Steps per interval averaged across all days")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-1-1.png) 
+
 Max steps occured on 
-```{r}
+
+```r
 intervalObservedMax <- averages[which.max(averages$steps),]
 print(intervalObservedMax)
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 ## Imputing missing values
 
 Total missing values
-```{r}
+
+```r
 sum(is.na(data$steps))
 ```
 
+```
+## [1] 2304
+```
+
 Fill na values with steps averaged on all days per interval
-```{r}
+
+```r
 library(data.table)
 indexOfNAValues <- which(is.na(data$steps))
 interval <- data[indexOfNAValues,]$interval
@@ -66,23 +101,52 @@ filledData <- data.frame(interval = data$interval,steps = filledDataSteps, date 
 str(filledData)
 ```
 
-checking imputting
-```{r}
-sum(is.na(filledData$steps))
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ steps   : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+```
 
+checking imputting
+
+```r
+sum(is.na(filledData$steps))
+```
+
+```
+## [1] 0
+```
+
+```r
 newData <- aggregate(steps ~ date,filledData,sum)
 qplot(newData$steps,xlab="Total Steps per day",main = "Total Steps Per day Distribution",
       ylab ="Frequency" )
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+```r
 mean(newData$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(newData$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 Difference in patterns between weekdays and weekends
-```{r}
 
+```r
   data <- data.table(data)
   data$weekday <- as.factor(weekdays(as.Date(data$date)))
 
@@ -102,7 +166,10 @@ Difference in patterns between weekdays and weekends
   dataByWeekday$interval <- as.integer(dataByWeekday$interval)
 ```
 
-```{r}
+
+```r
   g <- ggplot(dataByWeekday, aes(x=interval,y=steps))
   g + geom_line(color="blue")+facet_wrap(~weekFactor,nrow=2,ncol=1)
-```  
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
